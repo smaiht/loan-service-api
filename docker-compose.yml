@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: 
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8009:80"
+    volumes:
+      - ./web:/var/www/html/web
+    depends_on:
+      - php-fpm
+
+  php-fpm:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./runtime:/var/www/html/runtime
+      - ./web/assets:/var/www/html/web/assets
+    depends_on:
+      - db
+    environment:
+      DB_STRING: 'pgsql:host=db;port=5432;dbname=yii2_api_loan'
+      DB_USER: 'root'
+      DB_PASS: '12121212'
+    command: >
+      bash -c "
+      echo 'Starting container setup...' &&
+      chown -R www-data:www-data /var/www/html/runtime /var/www/html/web/assets &&
+      chmod -R 775 /var/www/html/runtime /var/www/html/web/assets &&
+      php yii migrate --interactive=0 &&
+      echo 'Setup complete. Starting php-fpm...' &&
+      php-fpm
+      "
+
+  db:
+    build: 
+      context: ./docker/db
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: yii2_api_loan
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: '12121212'
+    ports:
+      - "54329:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

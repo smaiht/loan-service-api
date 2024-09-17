@@ -1,0 +1,1 @@
+CREATE DATABASE IF NOT EXISTS yii2_api_loan;
