@@ -1,1 +1,1 @@
-CREATE DATABASE IF NOT EXISTS yii2_api_loan;
+CREATE DATABASE yii2_api_loan;
