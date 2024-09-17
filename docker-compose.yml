@@ -10,7 +10,8 @@ services:
     volumes:
       - ./web:/var/www/html/web
     depends_on:
-      - php-fpm
+      php-fpm:
+        condition: service_healthy
 
   php-fpm:
     build: 
@@ -25,11 +26,18 @@ services:
       DB_STRING: 'pgsql:host=db;port=5432;dbname=yii2_api_loan'
       DB_USER: 'root'
       DB_PASS: '12121212'
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm -t"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     command: >
       bash -c "
       echo 'Starting container setup...' &&
       chown -R www-data:www-data /var/www/html/runtime /var/www/html/web/assets &&
       chmod -R 775 /var/www/html/runtime /var/www/html/web/assets &&
+
+      sleep 10 &&
       php yii migrate --interactive=0 &&
       echo 'Setup complete. Starting php-fpm...' &&
       php-fpm
@@ -47,6 +55,11 @@ services:
       - "54329:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d yii2_api_loan"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
