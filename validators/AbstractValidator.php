@@ -13,15 +13,19 @@ abstract class AbstractValidator
     {
         $request = Yii::$app->request;
         $this->checkArgumentSource($source);
-        $method = $source === "body" ? "getBodyParam" : "get";
+        
+        if ($source === "body") {
+            $data = $request->getBodyParams();
+        } else {
+            $data = $request->get();
+        }
+
         $missing = [];
         $values = [];
 
         foreach ($fields as $field) {
-            $value = $request->{$method}($field);
-
-            if (!is_null($value)) {
-                $values[$field] = $value;
+            if (isset($data[$field])) {
+                $values[$field] = $data[$field];
             } else {
                 $missing[] = $field;
             }
